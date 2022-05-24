@@ -20,6 +20,7 @@ public sealed class MyContext : IdentityDbContext<ApplicationUser, ApplicationRo
         {
             entity.Property(x => x.Name).HasMaxLength(50).IsRequired(false);
             entity.Property(x => x.Surname).HasMaxLength(50).IsRequired(false);
+            entity.Property(x => x.PhoneNumber).HasMaxLength(10).IsRequired(false);
             entity.Property(x => x.RegisterDate).HasColumnType("datetime");
         });
 
@@ -27,6 +28,7 @@ public sealed class MyContext : IdentityDbContext<ApplicationUser, ApplicationRo
         {
             entity.Property(x => x.Description).HasMaxLength(120).IsRequired(false);
         });
+
 
         builder.Entity<Category>(entity =>
         {
@@ -38,6 +40,7 @@ public sealed class MyContext : IdentityDbContext<ApplicationUser, ApplicationRo
             entity.Property(x => x.Description).IsRequired(false).HasMaxLength(250);
         });
         
+
         builder.Entity<Product>(entity =>
         {
             entity.HasIndex(x => x.Id);
@@ -49,6 +52,7 @@ public sealed class MyContext : IdentityDbContext<ApplicationUser, ApplicationRo
             entity.Property(x => x.UnitPrice).HasPrecision(8, 2);
         });
     }
+
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
 }
