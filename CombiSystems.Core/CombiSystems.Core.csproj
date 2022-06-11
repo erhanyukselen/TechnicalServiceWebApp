@@ -7,6 +7,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="UsefulMethods" Version="1.0.5" />
+	</ItemGroup>
+	<ItemGroup>
 		<None Update="Properties\launchSettings.json">
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 			<CopyToPublishDirectory>Never</CopyToPublishDirectory>

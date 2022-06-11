@@ -32,7 +32,7 @@ namespace CombiSystems.Web.Extensions
 
                 // User settings.
                 options.User.AllowedUserNameCharacters =
-                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@";
                 options.User.RequireUniqueEmail = true;
             }).AddEntityFrameworkStores<MyContext>()
                 .AddDefaultTokenProviders();
@@ -42,9 +42,8 @@ namespace CombiSystems.Web.Extensions
                 // Cookie settings
                 options.Cookie.HttpOnly = true;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
-
-                options.LoginPath = "/Account/Login";
-                options.AccessDeniedPath = "/Account/AccessDenied";
+                options.LoginPath = "/Login";
+                options.AccessDeniedPath = "/Home/AccessDenied";
                 options.SlidingExpiration = true;
             });
 
@@ -52,10 +51,10 @@ namespace CombiSystems.Web.Extensions
 
             services.AddTransient<IEmailService, SmtpEmailService>();
 
-            services.AddScoped<IRepository<Product, Guid>, ProductRepo>();
+            services.AddScoped<IRepository<Product, int>, ProductRepo>();
             services.AddScoped<IRepository<Category, int>, CategoryRepo>();
+            services.AddScoped<IRepository<Appointment, int>, AppointmentRepo>();
 
-            //builder.Services.AddAutoMapper(options => options.AddMaps("AdminTemplate.MappingProfiles"));
             services.AddAutoMapper(options =>
             {
                 options.AddProfile<EntityMappingProfile>();

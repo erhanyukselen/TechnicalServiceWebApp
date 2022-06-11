@@ -1,5 +1,7 @@
-﻿using CombiSystems.Business.Services.Email;
+﻿using CombiSystems.Business.Repositories.Abstracts;
+using CombiSystems.Business.Services.Email;
 using CombiSystems.Core.Emails;
+using CombiSystems.Core.Entities;
 using CombiSystems.Core.Identity;
 using CombiSystems.Data.Identity;
 using CombiSystems.Web.ViewModels;
@@ -17,21 +19,73 @@ public class UserController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IEmailService _emailService;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly IRepository<Appointment,int> _appointmentRepo;
 
     public UserController(UserManager<ApplicationUser> userManager,
         IEmailService emailService,
-        SignInManager<ApplicationUser> signInManager)
+        SignInManager<ApplicationUser> signInManager, 
+        IRepository<Appointment,int> appointmentRepo)
     {
         _userManager = userManager;
         _emailService = emailService;
         _signInManager = signInManager;
+        _appointmentRepo = appointmentRepo;
     }
 
+    public IActionResult Index()
+    {
+        return View();
+    }
+
+    public IActionResult RoleChange()
+    {
+        return View();
+    }
+
+    [Authorize]
+    [HttpGet]
+    public IActionResult Appointment()
+    {
+        var model = _appointmentRepo.Get().ToList();
+        return View(model);
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> Appointment(Appointment model)
+    {
+
+        if (!ModelState.IsValid)
+        {
+            TempData["Fail"] = "Appointment creating is Failed!";
+            return View(model);
+        }
+
+        var name = HttpContext.User.Identity!.Name;
+        var user = await _userManager.FindByNameAsync(name);
+
+        var appointment = new Appointment
+        {
+            AppointmentAddress = model.AppointmentAddress,
+            UserId = user.Id,
+            Description = model.Description
+        };
+        var result=_appointmentRepo.Insert(appointment);
+        _appointmentRepo.Save();
+        TempData["Success"] = "Appointment creating is Success!";
+
+        return RedirectToAction();
+    }
 
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> Profile()
     {
+        if (!HttpContext.User.Identity!.IsAuthenticated)
+        {
+            return RedirectToAction("Login", "Home");
+        }
+
         var name = HttpContext.User.Identity!.Name;
         var user = await _userManager.FindByNameAsync(name);
         var model = new UpdateProfilePasswordViewModel
@@ -41,8 +95,8 @@ public class UserController : Controller
                 Email = user.Email,
                 Name = user.Name!,
                 Surname = user.Surname!,
-                PhoneNumber=user.PhoneNumber,
-                Adress=user.Adress
+                PhoneNumber = user.PhoneNumber,
+                Adress = user.Adress
 
             }
         };
@@ -61,7 +115,7 @@ public class UserController : Controller
         {
             UserProfileVM = new UserProfileViewModel()
             {
-                UserName=user.UserName,
+                UserName = user.UserName,
                 Email = user.Email,
                 Name = user.Name!,
                 Surname = user.Surname!,
@@ -86,7 +140,7 @@ public class UserController : Controller
             return View(model);
         }
 
-        var name = HttpContext.User.Identity.Name;
+        var name = HttpContext.User.Identity!.Name;
         var user = await _userManager.FindByNameAsync(name);
 
         if (user == null)
@@ -96,7 +150,7 @@ public class UserController : Controller
         }
 
         var isAdmin = await _userManager.IsInRoleAsync(user, Roles.Admin);
-        if (user.Email != model.UserProfileVM.Email && !isAdmin)
+        if (user.Email != model.UserProfileVM!.Email && !isAdmin)
         {
             await _userManager.RemoveFromRoleAsync(user, Roles.User);
             await _userManager.AddToRoleAsync(user, Roles.Passive);
@@ -104,7 +158,7 @@ public class UserController : Controller
 
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Scheme);
+            var callbackUrl = Url.Action("ConfirmEmail", "Home", new { userId = user.Id, code = code }, protocol: Request.Scheme);
 
             var emailMessage = new MailModel()
             {
@@ -155,9 +209,9 @@ public class UserController : Controller
             return RedirectToAction(nameof(Profile));
         }
 
-        var name = HttpContext.User.Identity.Name;
+        var name = HttpContext.User.Identity!.Name;
         var user = await _userManager.FindByNameAsync(name);
-        var result = await _userManager.ChangePasswordAsync(user, model.ChangePasswordVM.CurrentPassword, model.ChangePasswordVM.NewPassword);
+        var result = await _userManager.ChangePasswordAsync(user, model.ChangePasswordVM!.CurrentPassword, model.ChangePasswordVM.NewPassword);
 
         if (result.Succeeded)
         {
@@ -172,6 +226,7 @@ public class UserController : Controller
 
         return RedirectToAction(nameof(EditProfile));
     }
+
 
 
 
