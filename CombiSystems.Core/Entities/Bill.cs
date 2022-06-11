@@ -1,4 +1,4 @@
-﻿using CombiSystems.Core.Entities.Abstracts;
+using CombiSystems.Core.Entities.Abstracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
